@@ -1,3 +1,5 @@
 .idea/
 target/
 secrets.txt
+dbinfo.txt
+externalConfig.yml
