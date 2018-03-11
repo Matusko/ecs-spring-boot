@@ -1,0 +1,50 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+
+Parameters:
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  DBMasterUserName:
+    Type: string
+
+  DBMasterPassword:
+    Type: string
+
+Resources:
+  DBVPCSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RDS PostgreSQLDatabase Instance
+      VpcId: !Ref VpcId
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets available for the RDS PostgreSQLDatabase Instance
+      SubnetIds: !Ref Subnets
+
+  PostgreSQLDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: ecs_spring_boot
+      AllocatedStorage: 20
+      DBInstanceClass: db.t2.micro
+      Engine: postgres
+      EngineVersion: 9.6.6
+      MasterUsername: !Ref DBMasterUserName
+      MasterUserPassword: !Ref DBMasterPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups: !Ref DBVPCSecurityGroup
+
+
+Outputs:
+  DatabaseEndpoint:
+    Value: !GetAtt PostgreSQLDatabase.Endpoint.Address
+
+  DatabasePort:
+    Value: !GetAtt PostgreSQLDatabase.Endpoint.Port

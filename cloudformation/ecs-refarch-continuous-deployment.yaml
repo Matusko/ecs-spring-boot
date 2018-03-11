@@ -22,6 +22,16 @@ Parameters:
       https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html
       to learn more about launch types.
 
+  DBMasterUserName:
+    Type: string
+    Default: matusko
+    Description: Master name for rds postgresql database
+
+  DBMasterPassword:
+    Type: string
+    Description: Password for rds postgresql database master
+    NoEcho: true
+
   GitHubUser:
     Type: String
     Default: Matusko
@@ -53,6 +63,10 @@ Parameters:
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterLabels:
+      DBMasterUserName:
+        default: "Database Master Name"
+      DBMasterPassword:
+        default: "Database Master Password"
       GitHubUser:
         default: "User"
       GitHubRepo:
@@ -103,6 +117,10 @@ Resources:
         GitHubToken: !Ref GitHubToken
         GitHubRepo: !Ref GitHubRepo
         GitHubBranch: !Ref GitHubBranch
+        DatabaseEndpoint: !GetAtt Database.Outputs.DatabaseEndpoint
+        DatabasePort: !GetAtt Database.Outputs.DatabasePort
+        DBMasterUserName: !Ref DBMasterUserName
+        DBMasterPassword: !Ref DBMasterPassword
 
   LoadBalancer:
     Type: AWS::CloudFormation::Stack
@@ -122,6 +140,16 @@ Resources:
         VpcCIDR: 10.215.0.0/16
         Subnet1CIDR: 10.215.10.0/24
         Subnet2CIDR: 10.215.20.0/24
+
+  Database:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${TemplateBucket}/templates/database.yaml"
+      Parameters:
+        Subnets: !GetAtt VPC.Outputs.Subnets
+        VpcId: !GetAtt VPC.Outputs.VpcId
+        DBMasterUserName: !Ref DBMasterUserName
+        DBMasterPassword: !Ref DBMasterPassword
 
   Service:
     Type: AWS::CloudFormation::Stack

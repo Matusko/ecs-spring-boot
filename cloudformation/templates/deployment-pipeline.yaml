@@ -3,6 +3,18 @@ AWSTemplateFormatVersion: 2010-09-09
 
 
 Parameters:
+  DatabaseEndpoint:
+    Type: String
+
+  DatabasePort:
+    Type: String
+
+  DBMasterUserName:
+    Type: String
+
+  DBMasterPassword:
+    Type: String
+
   GitHubRepo:
     Type: String
 
@@ -116,26 +128,31 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            pre_build:
-              commands:
-                - $(aws ecr get-login --no-include-email)
-                - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
-                - IMAGE_URI="${REPOSITORY_URI}:${TAG}"
-            build:
-              commands:
-                - echo mvn install
-                - mvn install dockerfile:build
-                - echo docker build
-                - docker build --build-arg JAR_FILE=target/gs-spring-boot-docker-0.1.0.jar  --tag "$IMAGE_URI" .
-            post_build:
-              commands:
-                - docker push "$IMAGE_URI"
-                - printf '[{"name":"simple-app","imageUri":"%s"}]' "$IMAGE_URI" > images.json
-          artifacts:
-            files: images.json
+        BuildSpec:
+          Fn::Sub:
+            - |
+              version: 0.2
+              phases:
+                pre_build:
+                  commands:
+                    - $(aws ecr get-login --no-include-email)
+                    - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+                    - IMAGE_URI="${REPOSITORY_URI}:${TAG}"
+                    - echo generating config
+                    - sed -e "s/{{% DB_ENDPOINT %}}/${DB_ENDPOINT}/" -e "s/{{% DB_PORT %}}/${DB_PORT}/" -e "s/{{% DB_MASTER_NAME %}}/${DB_MASTER_NAME}/" -e "s/{{% DB_MASTER_PSWD %}}/${DB_MASTER_PSWD}/" externalConfigTemplate.yml > externalConfig.yml
+                build:
+                  commands:
+                    - echo mvn install
+                    - mvn install dockerfile:build
+                    - echo docker build
+                    - docker build --build-arg JAR_FILE=target/gs-spring-boot-docker-0.1.0.jar --build-arg CONFIG_FILE=externalConfig.yml --tag "$IMAGE_URI" .
+                post_build:
+                  commands:
+                    - docker push "$IMAGE_URI"
+                    - printf '[{"name":"simple-app","imageUri":"%s"}]' "$IMAGE_URI" > images.json
+              artifacts:
+                files: images.json
+            - {DB_ENDPOINT: DatabaseEndpoint, DB_PORT: DatabasePort, DB_MASTER_NAME: DBMasterUserName, DB_MASTER_PSWD: DBMasterPassword}
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/java:openjdk-8
