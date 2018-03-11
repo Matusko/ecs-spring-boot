@@ -23,12 +23,12 @@ Parameters:
       to learn more about launch types.
 
   DBMasterUserName:
-    Type: string
+    Type: String
     Default: matusko
     Description: Master name for rds postgresql database
 
   DBMasterPassword:
-    Type: string
+    Type: String
     Description: Password for rds postgresql database master
     NoEcho: true
 
@@ -82,6 +82,11 @@ Metadata:
           default: Cluster Configuration
         Parameters:
           - LaunchType
+      - Label:
+          default: Database Configuration
+        Parameters:
+          - DBMasterUserName
+          - DBMasterPassword
       - Label:
           default: GitHub Configuration
         Parameters:

@@ -10,10 +10,10 @@ Parameters:
     Type: AWS::EC2::VPC::Id
 
   DBMasterUserName:
-    Type: string
+    Type: String
 
   DBMasterPassword:
-    Type: string
+    Type: String
 
 Resources:
   DBVPCSecurityGroup:
@@ -21,6 +21,11 @@ Resources:
     Properties:
       GroupDescription: Security group for RDS PostgreSQLDatabase Instance
       VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          IpProtocol: "TCP"
+          FromPort: 5432
+          ToPort: 5432
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -39,7 +44,8 @@ Resources:
       MasterUsername: !Ref DBMasterUserName
       MasterUserPassword: !Ref DBMasterPassword
       DBSubnetGroupName: !Ref DBSubnetGroup
-      VPCSecurityGroups: !Ref DBVPCSecurityGroup
+      VPCSecurityGroups:
+        - !Ref DBVPCSecurityGroup
 
 
 Outputs:
