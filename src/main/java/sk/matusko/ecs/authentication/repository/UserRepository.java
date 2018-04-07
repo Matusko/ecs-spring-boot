@@ -9,4 +9,6 @@ public interface UserRepository extends PagingAndSortingRepository<User, Long> {
 
     Page<User> findByLastName(String lastName, Pageable pageable);
 
+    User findOneByUsername(String username);
+
 }

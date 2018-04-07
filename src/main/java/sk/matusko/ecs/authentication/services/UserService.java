@@ -2,13 +2,14 @@ package sk.matusko.ecs.authentication.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.validation.annotation.Validated;
 import sk.matusko.ecs.authentication.dao.User;
 
 import javax.validation.Valid;
 
 @Validated
-public interface UserService {
+public interface UserService extends UserDetailsService {
 
     User save(@Valid User user);
 
