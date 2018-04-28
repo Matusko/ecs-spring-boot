@@ -8,6 +8,6 @@ public class MainController {
 
     @RequestMapping("/")
     public String home() {
-        return "Hello Docker World, i added webhooks";
+        return "Hello Docker World, i have added webhooks";
     }
 }
